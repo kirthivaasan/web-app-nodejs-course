@@ -5,6 +5,8 @@ module.exports = function (app){
     const bcrypt = require('bcrypt');
     const{ User } = require('../db');
 
+    const saltRounds = 10;
+
     // import passport and passport-jwt modules
     const jwt = require('jsonwebtoken');
     const passportJWT = require('passport-jwt');
@@ -63,13 +65,10 @@ module.exports = function (app){
     router.post('/register', function(req, res, next) {
         const { name, email, password } = req.body;
 
-        const saltRounds = 10;
-        bcrypt.hash(password,saltRounds,function(err,hashedPassword){
-            createUser({ name, email, password }).then(user =>
-                                                       res.json({ name, msg: 'Account created successfully' })
-                                                      );
+        bcrypt.hash(password, 10, function(err, hash) {
+            let password = hash;
+            createUser({ name, email, password }).then(user => res.json({ name, msg: 'Account created successfully' }));
         });
-
     });
 
     // Login route
@@ -81,35 +80,24 @@ module.exports = function (app){
         if (name && password) {
             // we get the user with the name and save the resolved promise
             let user = await getUser({ name });
-            console.log('getUser response: ' + user.password);
-            if (user) {
-                const saltRounds = 10;
-                bcrypt.hash(password,saltRounds,function(err, hash){
-                    console.log('hash: ' + hash, ' password: ' + password);
-                    if (hash == password) {
-	                console.log('ready to sign token')
-                        let payload = { id: user.id };
-                        let token = jwt.sign(payload, jwtOptions.secretOrKey);
-                        var returnJson = { msg: 'ok', token: token }; 
-                        console.log(returnJson);
-                        res.json(returnJson);
-                    } else {
-                        res.status(401).json({ msg: 'Password is incorrect' });
-                    }
-                    // bcrypt.compare(password, hash, function(err, res) {
-	            //     if(res) {
-	            //         console.log('ready to sign token')
-                    //         // the only personalized value that goes into our token
-                    //         let payload = { id: user.id };
-                    //         let token = jwt.sign(payload, jwtOptions.secretOrKey);
-                    //         var returnJson = { msg: 'ok', token: token }; 
-                    //         console.log(returnJson);
-                    //         res.json(returnJson);
-	            //     } else {
-                    //         res.status(401).json({ msg: 'Password is incorrect' });
-	            //     } 
-                    // });
-                });
+            let hash = bcrypt.hashSync(password, 10);
+
+            console.log('PASSWORD: ' + password);
+            console.log(password == '1234');
+            console.log(bcrypt.hashSync(password, 10));
+            console.log(bcrypt.hashSync('1234', 10));
+            console.log(bcrypt.hashSync('1234', 10));
+            console.log(bcrypt.hashSync('1234', 10));
+                        
+            console.log('getUser response: ' + user.password, ' computed hash: ' + hash);
+            
+            if(bcrypt.compareSync(user.password, hash)) {
+	        console.log('ready to sign token');
+                let payload = { id: user.id };
+                let token = jwt.sign(payload, jwtOptions.secretOrKey);
+                var returnJson = { msg: 'ok', token: token }; 
+                console.log(returnJson);
+                res.json(returnJson);
             } else {
                 console.log('no such user');
                 res.status(401).json({ msg: 'No such user found', user });
