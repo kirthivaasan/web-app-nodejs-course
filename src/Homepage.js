@@ -3,6 +3,7 @@ import Axios from 'axios';
 import Auth from './Auth';
 import Login from './login';
 import Signup from './signup';
+import Profile from './profile';
 
 class Homepage  extends Component {
     constructor(props) {
@@ -45,7 +46,7 @@ class Homepage  extends Component {
             {Auth.isUserAuthenticated() ? (
                 <div>
                     <div id="logout"><button onClick={this.logout.bind(this)}>LogOut</button></div>
-                  <p>where the app is supposed to be</p>
+                  <Profile/>
                 </div>
              ) : (
                <div id="login">
