@@ -91,7 +91,7 @@ module.exports = function (app){
                         
             console.log('getUser response: ' + user.password, ' computed hash: ' + hash);
             
-            if(bcrypt.compareSync(user.password, hash)) {
+            if(bcrypt.compareSync(password, user.password)) {
 	        console.log('ready to sign token');
                 let payload = { id: user.id };
                 let token = jwt.sign(payload, jwtOptions.secretOrKey);
